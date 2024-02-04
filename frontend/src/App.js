@@ -38,14 +38,43 @@ function App() {
     getNotes()
   }, [])
 
-  const deleteNote = (entry) => {
+  const deleteNote = async (entry) => {
     // Code for DELETE here
+    try {
+      const res = await fetch(`http://localhost:4000/deleteNote/${entry._id}`, {
+        method: "DELETE"
+      });
+
+      if (!res.ok) {
+        console.log("Delete note failed:", res.status);
+      } else {
+        deleteNoteState(entry._id);
+      }
+      
+    } catch (error) {
+      console.log("Delete note function failed:", error);
+      alert(`Deletion of post ${entry.title} failed!!!`);
+    }
   }
 
-  const deleteAllNotes = () => {
+  const deleteAllNotes = async () => {
     // Code for DELETE all notes here
-  }
+    try {
+      const res = await fetch('http://localhost:4000/deleteAllNotes' , {
+        method: 'DELETE'
+      });
 
+      if (!res.ok) {
+        console.log("Failed to delete all notes:", res.status)
+      } else {
+        deleteAllNotesState();
+      }
+
+    } catch (error) {
+      console.log("Error deleting all notes:", error);
+      alert("Error deleting all notes!!");
+    }
+  }
   
   // -- Dialog functions --
   const editNote = (entry) => {
@@ -56,7 +85,7 @@ function App() {
   const postNote = () => {
     setDialogNote(null)
     setDialogOpen(true)
-  }
+  } 
 
   const closeDialog = () => {
     setDialogNote(null)
@@ -72,16 +101,25 @@ function App() {
     setNotes((prevNotes) => [...prevNotes, {_id, title, content}])
   }
 
-  const deleteNoteState = () => {
+  const deleteNoteState = (noteId) => {
     // Code for modifying state after DELETE here
+    setNotes((prevNotes) => prevNotes.filter(
+      (note) => note._id !== noteId
+      ));
   }
 
   const deleteAllNotesState = () => {
     // Code for modifying state after DELETE all here
+    setNotes([]);
   }
 
   const patchNoteState = (_id, title, content) => {
     // Code for modifying state after PATCH here
+    setNotes((prevNotes) => {
+      return prevNotes.map((note) => 
+        note._id === _id ? { ...note, title, content } : note
+      );
+    })
   }
 
   return (
@@ -130,7 +168,7 @@ function App() {
           initialNote={dialogNote}
           closeDialog={closeDialog}
           postNote={postNoteState}
-          // patchNote={patchNoteState}
+          patchNote={patchNoteState}
           />
 
       </header>
